@@ -1,0 +1,47 @@
+Assembler:
+
+Minor features/work (do it):
+
+ - need local labels in macros
+ - need convenient block local labels
+
+    branch labels:
+
+	@:	foo
+		bar
+		fred
+		bne	@
+
+ - integers should be larger than word size (at least 64 bits).
+
+ - fill pattern for .align and .space.  this is complicated.
+
+ - early or late evaluation for .foreach?  We would like it to be early
+   evaluation for this- not late (then we could pass it string variables). 
+   But that implies it's not the same as a macro.  Maybe expression
+   evaluation/simplification should return a string result?
+
+Optional/future:
+
+ - add .showrules.
+
+ - need to make pager (as seperate program).
+
+ - limit object module record size?
+
+ - listing
+   - more information in data area of each line:
+      - section name
+      - fixup info
+
+ - verify/improve memory management.
+
+ - compress source references in object file.  right now they are huge.
+   perhaps there should be a file names list section and we use some sort of
+   format for this.  don't know what to do about .errif messages though.
+
+Verifications:
+
+ - check for circular reference bugs.
+
+ - macro recursion depth limit?
