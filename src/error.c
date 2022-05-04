@@ -12,9 +12,7 @@ int err;
 
 char errbuf[256];	/* Error string buffer */
 
-char *doref(src,s)
-struct source *src;
-char *s;
+char *doref(struct source *src,char *s)
 {
     if(src->next)
     {
@@ -26,8 +24,7 @@ char *s;
     return s;
 }
 
-char *srcref(s)
-char *s;
+char *srcref(char *s)
 {
     *s=0;
     s=doref(source,s);
@@ -36,7 +33,7 @@ char *s;
     return s;
 }
 
-void error()		/* Print error buffer */
+void error(void)	/* Print error buffer */
 {
     char tmpbuf[512];
     err=1;

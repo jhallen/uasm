@@ -47,7 +47,7 @@ void library(FILE *fd,char *name)
                     e->name=strdup(getword());
                     if(f=htfind(lib,e->name))
                         fprintf(stderr,
-                            "Multiply defined symbol '%s' in %s and %s\n",f->name,e->name);
+                            "Multiply defined symbol '%s' in %s and %s\n",e->name, name,f->name);
                     else
                         htadd(lib,e->name,e);
                 }
@@ -83,8 +83,9 @@ void getlib(char *name)
 
 int resflg=0;
 
-void resolver(void *obj,char *name,struct symbol *sy)
+void resolver(void *obj,char *name,void *v)
 {
+    struct symbol *sy = (struct symbol *)v;
     if(!sy->module && !sy->v)
     {
         getlib(sy->name);

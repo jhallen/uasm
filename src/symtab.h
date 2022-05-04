@@ -53,4 +53,7 @@ void emitsymtab(void);
 void emitsymbol(struct symbol *sym);
 void xreflisting(FILE *file);
 
+void linkxref(FILE *file);
+
+
 #endif

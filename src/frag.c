@@ -7,6 +7,8 @@
 #include "output.h"
 #include "error.h"
 #include "ulink.h"
+#include "listing.h"
+#include "symtab.h"
 #include "frag.h"
 
 /* Section table */
@@ -136,8 +138,9 @@ void fixup(struct section *sect,int type,unsigned long ofst,Tree *value,Tree *ms
 
 /* Set section offset to section inc */
 
-void updsect(void *obj,char *name,struct section *sec)
+void updsect(void *obj,char *name,void *v)
 {
+    struct section *sec = (struct section *)v;
     sec->offset=sec->inc;
 }
 
@@ -186,8 +189,9 @@ void emitfrag(struct frag *frag)
 
 /* Emit fragments in a section */
 
-void emitsect(void *obj,char *name,struct section *sect)
+void emitsect(void *obj,char *name,void *v)
 {
+    struct section *sect = (struct section *)v;
     struct frag *frag;
     for(frag=sect->frags;frag;frag=frag->next) emitfrag(frag);
 }
@@ -196,13 +200,15 @@ void emitsect(void *obj,char *name,struct section *sect)
 
 int nsects;
 
-void countsect(void *obj,char *name,struct section *sect)
+void countsect(void *obj,char *name,void *v)
 {
+    struct section *sect = (struct section *)v;
     sect->no=nsects++;
 }
 
-void hdrsect(void *obj,char *name,struct section *sect)
+void hdrsect(void *obj,char *name,void *v)
 {
+    struct section *sect = (struct section *)v;
     emitnum(sect->align);		/* Alignment */
     emitnum(sect->offset);		/* Size */
     emits(sect->name);		/* Name */
@@ -284,8 +290,9 @@ void linkfrag(struct frag *frag)
 
 /* Link a section */
 
-void linksect(void *obj,char *name,struct section *sect)
+void linksect(void *obj,char *name,void *v)
 {
+    struct section *sect = (struct section *)v;
     struct frag *frag;
     for(frag=sect->frags;frag;frag=frag->next) linkfrag(frag);
 }
@@ -302,8 +309,9 @@ void link(int flg)
 
 FILE *showfile;
 
-void showsect(void *obj,char *name,struct section *sect)
+void showsect(void *obj,char *name, void *v)
 {
+    struct section *sect = (struct section *)v;
     fprintf(showfile," %s",name);
 }
 
@@ -332,8 +340,9 @@ unsigned long low;
 unsigned long high;
 unsigned char *mem;
 
-void lowhi(void *obj,char *name,struct section *sec)
+void lowhi(void *obj,char *name,void *v)
 {
+    struct section *sec = (struct section *)v;
     struct frag *frag;
     for(frag=sec->frags;frag;frag=frag->next)
     {
@@ -348,8 +357,9 @@ void lowhi(void *obj,char *name,struct section *sec)
     if(sec->addr+sec->offset>high) high=sec->addr+sec->offset;
 }
 
-void tomem(void *obj,char *name,struct section *sec)
+void tomem(void *obj,char *name,void *v)
 {
+    struct section *sec = (struct section *)v;
     struct frag *frag;
     for(frag=sec->frags;frag;frag=frag->next)
         if(frag->len)
@@ -375,8 +385,10 @@ void image(FILE *fd)
 
 /* Generate listing */
 
-void dolistsect(FILE *f,char *name,struct section *sect)
+void dolistsect(void *obj,char *name,void *v)
 {
+    FILE *f = (FILE *)obj;
+    struct section *sect = (struct section *)v;
     int x;
     fprintf(f,"%-20s %8lx %8lx",sect->name,sect->addr,sect->offset);
     if(sect->end>sect->start)

@@ -9,6 +9,7 @@
 #include "strlist.h"
 #include "frag.h"
 #include "ulink.h"
+#include "output.h"
 #include "symtab.h"
 
 struct symtab symtab[1];
@@ -55,14 +56,16 @@ void addlinkref(struct symbol *symbol, struct module *module)
 static int npubs;
 static int nrefs;
 
-static void countsym(void *obj,char *name,struct symbol *sym)
+static void countsym(void *obj,char *name,void *v)
 {
+    struct symbol *sym = (struct symbol *)v;
     if(sym->pub) sym->no=npubs++;
     if(!sym->pub && !sym->v) sym->no=nrefs++;
 }
 
-static void emitpub(void *obj,char *name,struct symbol *sym)
+static void emitpub(void *obj,char *name,void *v)
 {
+    struct symbol *sym = (struct symbol *)v;
     if(sym->pub)
     {
         emits(name);
@@ -72,8 +75,9 @@ static void emitpub(void *obj,char *name,struct symbol *sym)
     }
 }
 
-static void emitref(void *obj,char *name,struct symbol *sym)
+static void emitref(void *obj,char *name,void *v)
 {
+    struct symbol *sym = (struct symbol *)v;
     if(!sym->pub && !sym->v)
     {
         sym->no+=npubs, emits(name);
@@ -100,8 +104,9 @@ static void emitsyms(void)
 
 /* Emit public symbol values */
 
-static void emitdef(void *obj,char *name,struct symbol *sym)
+static void emitdef(void *obj,char *name, void *v)
 {
+    struct symbol *sym = (struct symbol *)v;
     if(sym->pub)
         if(sym->v)
             emit(sym->v);
@@ -143,13 +148,16 @@ void emitsymtab(void)
 struct symbol **symarray;
 int symnth;
 
-void buildarray(void *obj,char *name,struct symbol *sym)
+void buildarray(void *obj,char *name,void *v)
 {
+    struct symbol *sym = (struct symbol *)v;
     symarray[symnth++]=sym;
 }
 
-int symcmp(struct symbol **a,struct symbol **b)
+int symcmp(const void *aa,const void *bb)
 {
+    const struct symbol **a = (const struct symbol **)aa;
+    const struct symbol **b = (const struct symbol **)bb;
     return strcmp((*a)->name,(*b)->name);
 }
 

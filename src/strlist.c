@@ -212,8 +212,9 @@ void rmstrlist(struct strlist *l)
 
 /* Delete substitution hash table */
 
-void rmsubst(void *obj,char *name,struct subst *val)
+void rmsubst(void *obj,char *name,void *v)
 {
+    struct subst *val = (struct subst *)v;
     free(val->name);
     free(val->subst);
     free(val);

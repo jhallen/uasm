@@ -219,7 +219,7 @@ struct actionlist *addaction(struct action *action,struct pattern *pat,struct st
         {
             if(action->mac)
             {
-                error("duplicate instruction definition");
+                error0("duplicate instruction definition");
             }
             else
             {
@@ -345,21 +345,23 @@ void doinst(struct macro *macro,char *s)
 
 /* Show syntax tree for debugging */
 
-void showtree(int lvl,char *name,struct action *t)
+void showtree(void *obj,char *name,void *v)
 {
+    long lvl = (long)obj;
+    struct action *t = (struct action *)v;
     if(t)
     {
         indent(stdout,lvl); printf("%s\n",name);
-        if(t->lits) htall(t->lits,showtree,lvl+1);
-        showtree(lvl+1,"expr",t->expr);
-        showtree(lvl+1,"space",t->space);
-        showtree(lvl+1,"ospace",t->ospace);
+        if(t->lits) htall(t->lits,showtree,(void *)(lvl+1));
+        showtree((void *)lvl+1,"expr",t->expr);
+        showtree((void *)lvl+1,"space",t->space);
+        showtree((void *)lvl+1,"ospace",t->ospace);
     }
 }
 
 void doshowsyntax(void)
 {
-    showtree(0,"root",root);
+    showtree((void *)0,"root",root);
 }
 
 /* Backtracking line parser */

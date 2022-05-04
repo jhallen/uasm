@@ -88,4 +88,9 @@ extern HASH *sections;
 
 void image(FILE *fd);
 
+void updsects(void);
+unsigned long bind(struct section *sec,unsigned long addr,unsigned long ld);
+void listsects(FILE *f);
+void finddata(void);
+
 #endif

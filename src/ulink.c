@@ -231,8 +231,9 @@ void dofile(char *objname)
 
 int checkflg;
 
-void check(void *obj,char *name,struct section *sec)
+void check(void *obj,char *name,void *v)
 {
+    struct section *sec = (struct section *)v;
     if(!sec->set && sec->align) checkflg=1;
 }
 
@@ -261,18 +262,18 @@ void position(void)
     else
     {
         if(!quiet) printf(">");
-        gets(buf);
+        fgets(buf, sizeof(buf), stdin);
     }
     x=0;
     while(buf[x]==' ' || buf[x]=='\t') ++x;
-    for(y=x;buf[y] && buf[y]!=' ' && buf[y]!='\t' && buf[y]!='+' && buf[y]!=':';++y);
+    for(y=x;buf[y] != '\n' && buf[y] && buf[y]!=' ' && buf[y]!='\t' && buf[y]!='+' && buf[y]!=':';++y);
     sscanf(buf+x,"%lx",&addr);
     ld=addr;
     sscanf(buf+x,"%*x,%lx",&ld);
     ld-=addr;
     loop:
     for(x=y;buf[x]==' ' || buf[x]=='\t' || buf[x]==':' || buf[x]=='+';++x);
-    for(y=x;buf[y] && buf[y]!=' ' && buf[y]!='\t' && buf[y]!='+' && buf[y]!=':';++y);
+    for(y=x;buf[y] != '\n' && buf[y] && buf[y]!=' ' && buf[y]!='\t' && buf[y]!='+' && buf[y]!=':';++y);
     if(x!=y)
     {
         char c=buf[y]; buf[y]=0;

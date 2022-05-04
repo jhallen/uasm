@@ -11,6 +11,7 @@
 #include "output.h"
 #include "error.h"
 #include "listing.h"
+#include "parse.h"
 #include "uasm.h"
 
 /* Main */

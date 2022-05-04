@@ -1,6 +1,8 @@
 /* Expression parser */
 
 #include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 #include "hash.h"
 #include "symtab.h"
 #include "frag.h"
@@ -211,8 +213,7 @@ static OPR *opr()
 static char *strbuf;		/* String buffer */
 static int bufsiz;
 
-static Tree *parseexpr(symtab,prec)
-struct symtab *symtab;
+static Tree *parseexpr(struct symtab *symtab,int prec)
 {
     Tree *n, *t, *l, *r;
     char *oops;

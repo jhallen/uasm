@@ -6,6 +6,7 @@
 #include "frag.h"
 #include "strlist.h"
 #include "symtab.h"
+#include "error.h"
 #include "listing.h"
 
 struct listdata
