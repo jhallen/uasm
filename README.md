@@ -1,7 +1,7 @@
 # Universal Assembler
 
-This is an assembler for any machine.  The instruction is defined via a
-grammar provided in an include file.
+This is an assembler that targets any machine.  The instruction set is
+defined via a grammar provided in an include file.
 
 ## Pseudo-ops
 
