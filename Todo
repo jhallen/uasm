@@ -1,9 +1,17 @@
+
+Test example instruction sets
+
+Use long long for all labels and expressions
+
+Bugs:
+
+   Syntax errors cause crash?
+
 Assembler:
 
-Minor features/work (do it):
+   Need local labels in macros
 
- - need local labels in macros
- - need convenient block local labels
+   Need convenient block local labels
 
     branch labels:
 
@@ -12,22 +20,18 @@ Minor features/work (do it):
 		fred
 		bne	@
 
- - integers should be larger than word size (at least 64 bits).
+   Fill pattern for .align and .space.  this is complicated.
 
- - fill pattern for .align and .space.  this is complicated.
-
- - early or late evaluation for .foreach?  We would like it to be early
+   Early or late evaluation for .foreach?  We would like it to be early
    evaluation for this- not late (then we could pass it string variables). 
    But that implies it's not the same as a macro.  Maybe expression
    evaluation/simplification should return a string result?
 
-Optional/future:
+   Add .showrules.
 
- - add .showrules.
+   Need to make pager for listing (as seperate program? use "pg"?).
 
- - need to make pager (as seperate program).
-
- - limit object module record size?
+   Limit object module record size?
 
  - listing
    - more information in data area of each line:
