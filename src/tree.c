@@ -157,7 +157,7 @@ void showName(Tree *n,FILE *file,int flg,int lvl)
 {
     if(flg) fprintf(file," = ");
     else indent(file,lvl);
-    fprintf(file,"[%s]\n",n->Name.name);
+    fprintf(file,"name [%s]\n",n->Name.name);
 }
 
 Tree *mkName(Tree *n,struct Nodeid *id,va_list ap)
@@ -200,7 +200,7 @@ void showSymbol(Tree *n,FILE *file,int flg,int lvl)
 {
     if(flg) fprintf(file," = ");
     else indent(file,lvl);
-    fprintf(file,"[%p]\n",n->Symbol.sym);
+    fprintf(file,"sym [%p]\n",n->Symbol.sym);
 }
 
 Tree *mkSymbol(Tree *n,struct Nodeid *id,va_list ap)
@@ -249,7 +249,7 @@ void showLabel(Tree *n,FILE *file,int flg,int lvl)
 {
     if(flg) fprintf(file," = ");
     else indent(file,lvl);
-    fprintf(file,"%lu[%s]\n",n->Label.offset,n->Label.frag->owner->name);
+    fprintf(file,"label %lu[%s]\n",n->Label.offset,n->Label.frag->owner->name);
 }
 
 Tree *mkLabel(Tree *n,struct Nodeid *id,va_list ap)
@@ -1068,7 +1068,6 @@ struct Nodeid Muxid[1]=
 
 struct Nodeid *idtable[]=
 {
-    0,
     0,
     Intid,
     Stringid,
