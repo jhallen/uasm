@@ -13,7 +13,7 @@ conditional branch instructions:
 	; is a match, "expr" is returned.
 	.rule	name	expr	pattern
 
-	; Define "non-terminal" <cc> (condition code)
+	; Define condition codes, so that "<cc>" will refer to them
 	; So for example, cs means carry set and will have the value $25
 
 	.rule	cc	$20	ra
@@ -37,24 +37,27 @@ conditional branch instructions:
 
 	; Define the branch instructions
 
+	.insn	b<cc>	<expr>
+	 .emit	arg1
+	 .emit	arg2-.+1
+	.end
+
 	; b<cc> defines all branch instructions, including bra, bhi, bls,
 	; bcc, bcs, etc.
 
 	; <expr> is the branch target, an arbitrary expression
 
-	; Within in the body of the instruction, we emit two bytes:
+	; There is whitesace between <cc> and <expr>, so the input is
+	; allowed to have whitespace there.
+
+	; Within the body of the instruction, we emit two bytes:
 	; First byte is the op-code for the branch instrucion.
 
 	; Second byte is relative branch offset
 
-	; arg1, arg2, etc are replaced with value of the non-terminal or
-	; value of the expression.  They assigned in the order that values
-	; appear after the ".insn".
-
-	.insn	b<cc>	<expr>
-	 .emit	arg1
-	 .emit	arg2-.+1
-	.end
+	; arg1, arg2, etc.  are replaced with value of the rule or value of
+	; the expression.  They are assigned in the order that values appear
+	; in the pattern after the ".insn".
 
 	; Note that rules can return a comma separated list of values.  Also
 	; note that the "pattern" part of the rule can include reference to
@@ -62,6 +65,8 @@ conditional branch instructions:
 
 	.rule	mode	$F8,arg1	<expr>	; Direct addressing
 	.rule	mode	$FA,arg1	#<expr>	; Immediate addressing
+
+	; In the above, "arg1" is replaced with the <expr> from the pattern.
 
 ## Assembler command line
 
