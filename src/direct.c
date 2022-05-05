@@ -151,6 +151,7 @@ void doset(struct macro *macro, char *s)
         error0("Need symbol to set");
         return;
     }
+    if(*s==',') ++s;
     v=expr(symtab,&s);
     v=simp(v);
     if(!v)
