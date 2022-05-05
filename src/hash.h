@@ -6,6 +6,7 @@
 #define hnext(accu,c) (((accu)<<4)+((accu)>>28)+(c))
 
 typedef struct entry HENTRY;
+
 struct entry
 {
     char *name;		/* Symbol */
@@ -15,6 +16,7 @@ struct entry
 };
 
 typedef struct hash HASH;
+
 struct hash
 {
     int len;		/* No. entries in hash table - 1 */
@@ -26,15 +28,16 @@ struct hash
 };
 
 unsigned long hash(char *s);
-unsigned long hashn(char *s,int n);
+unsigned long hashn(char *s, int n);
 HASH *htmk(int len);
 void htrm(HASH *ht);
-void *htlfind(HASH *iht,char **iptr);
-void *htfindn(HASH *ht,int hval,char *name,int len);
 void *htfind(HASH *ht,char *name);
+void *htfindn(HASH *ht,int hval,char *name,int len);
+void *htlfind(HASH *ht,char **ptr);
+void *htlfindx(HASH *ht,char **ptr,void *(*func)(void *, char *));
 void *htadd(HASH *ht,char *name,void *val);
-HASH *htpsh(HASH **ptr);
-void htpop(HASH **ptr,HASH *to);
 void htall(HASH *ht,void (*func)(void *obj, char *name, void *val),void *obj);
+HASH *htpsh(HASH *old);
+void htpop(HASH **ptr,HASH *to);
 
 #endif

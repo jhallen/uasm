@@ -377,15 +377,15 @@ struct action *parseitem(struct action *item,char *s)
     if(!*s)
         if(item->mac) return item;
         else return 0;
-/*
     if(result=htlfindx(item->lits,&s,parseitem)) return result;
     s=org;
-*/
+/*
     if(a=htlfind(item->lits,&s))
     {
         if(result=parseitem(a,s)) return result;
         s=org;
     }
+*/
     if(item->space && (*s==' ' || *s=='\t'))
     {
         while(*s==' ' || *s=='\t') ++s;

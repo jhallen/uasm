@@ -16,11 +16,9 @@ You should have received a copy of the GNU General Public License along with
 JOE; see the file COPYING.  If not, write to the Free Software Foundation, 
 675 Mass Ave, Cambridge, MA 02139, USA.  */ 
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include "hash.h"
-
-static HENTRY *freentry=0;
 
 unsigned long hash(char *s)
 {
@@ -29,7 +27,7 @@ unsigned long hash(char *s)
     return accu;
 }
 
-unsigned long hashn(char *s,int n)
+unsigned long hashn(char *s, int n)
 {
     unsigned long accu=0;
     while(n--) accu=hnext(accu,*s++);
@@ -60,10 +58,10 @@ void htrm(HASH *ht)
     } while(ht=nxt);
 }
 
-void *htadd(HASH *ht,char *name,void *val)
+void *htaddn(HASH *ht,char *name,int len,void *val)
 {
     unsigned long accu=0;
-    char *s=name;
+    int x;
     int idx;
     HENTRY *entry;
     if(!ht->btab)
@@ -72,26 +70,27 @@ void *htadd(HASH *ht,char *name,void *val)
         if(ht->ltab) memcpy(ht->btab,ht->ltab,ht->llen+1);
         ht->ltab=ht->btab;
     }
-    if(*s) accu=hnext(accu,*s++);
-    while(*s)
+    x=0;
+    if(x!=len) accu=hnext(accu,name[x++]);
+    while(x!=len)
     {
         ++ht->btab[accu&ht->llen];
-        accu=hnext(accu,*s++);
+        accu=hnext(accu,name[x++]);
     }
     idx=(accu&ht->len);
-    if(!freentry)
-    {
-        int x;
-        entry=(HENTRY *)malloc(sizeof(HENTRY)*64);
-        for(x=0;x!=64;++x) entry[x].next=freentry, freentry=entry+x;
-    }
-    entry=freentry;
-    freentry=entry->next;
+
+    entry=malloc(sizeof(HENTRY));
+
     entry->next=ht->tab[idx];
     ht->tab[idx]=entry;
     entry->name=name;
-    entry->len=strlen(name);
+    entry->len=len;
     return entry->val=val;
+}
+
+void *htadd(HASH *ht,char *name,void *val)
+{
+    return htaddn(ht,name,strlen(name),val);
 }
 
 void *htfind(HASH *ht,char *name)
@@ -117,16 +116,11 @@ void *htfindn(HASH *ht,int hval,char *name,int len)
     return 0;
 }
 
-static unsigned long accu;	/* Hash value accumulator */
-static char *start;		/* Pointer to input string */
-static char *ptr;		/* Input pointer */
-static HASH *ht;		/* Current hash table */
-
-static void *dofind(void)
+static void *dofind(HASH *ht,unsigned long accu,char *start,char **iptr,void *(*func)(void *, char *s))
 {
-    unsigned long oaccu=accu; char *oops=ptr;
-    char c;
+    char *ptr= *iptr;
     void *t;
+    if(!ht->ltab) return 0;
     do
     {
         if(!*ptr) break;
@@ -134,32 +128,31 @@ static void *dofind(void)
         if(t=htfindn(ht,accu,start,ptr-start))
         {
             void *u;
-            if(u=dofind()) return u;
-            else return t;
+            *iptr=ptr;
+            if(u=dofind(ht,accu,start,iptr,func)) return u;
+            else
+                if(func) return func(t,ptr);
+                else return t;
         }
     } while(ht->ltab[accu&ht->llen]);
-    accu=oaccu; ptr=oops;
     return 0;
 }
 
-void *htlfind(HASH *iht,char **iptr)
+void *htlfind(HASH *ht,char **ptr)
 {
-    void *val;
-    ht=iht;
-    ptr= *iptr;
-    accu=0;
-    start=ptr;
-    val=dofind();
-    *iptr=ptr;
-    return val;
+    return dofind(ht,0L,*ptr,ptr,NULL);
 }
 
-HASH *htpsh(HASH **ptr)
+void *htlfindx(HASH *ht,char **ptr,void *(*func)(void *, char *))
 {
-    HASH *n=htmk((*ptr)->len+1);
-    n->next= *ptr;
-    n->ltab= (*ptr)->ltab;
-    *ptr= n;
+    return dofind(ht,0L,*ptr,ptr,func);
+}
+
+HASH *htpsh(HASH *old)
+{
+    HASH *n=htmk(old->len+1);
+    n->next= old;
+    n->ltab= old->ltab;
     return n;
 }
 
