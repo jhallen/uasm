@@ -3,10 +3,6 @@ Test example instruction sets
 
 Use long long for all labels and expressions
 
-Bugs:
-
-   Syntax errors cause crash?
-
 Assembler:
 
    Need local labels in macros

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include "hash.h"
 #include "symtab.h"
 #include "frag.h"
@@ -11,13 +12,16 @@
 #include "parse.h"
 #include "expr.h"
 
-extern void *malloc();
-extern void *realloc();
-extern void free();
-
 static char *ptr="";		/* Input pointer */
 static int col=0;		/* Column no. 'ptr' is at.  0 is first */
 static int lvl= -1;		/* Indentation level of current line */
+
+/* True if end of line or comment */
+
+static int eolc(char *p)
+{
+    return *p == 0 || *p == '\n' || *p == '\r' || *p == ';';
+}
 
 /* Skip over whitespace */
 
@@ -38,7 +42,7 @@ static void skipws()
         case '\n':
         case 0:
             return;
-                                                
+
         default:
             if(lvl== -1) lvl=col;
             return;
@@ -361,7 +365,7 @@ static Tree *parseexpr(struct symtab *symtab,int prec)
         break;
 
         default:							/* Operator? */
-        parseopr:
+        parskeopr:
         oops=ptr; oopscol=col; skipws(); op=opr();
         if(op && (op=op->prefix))
             switch(op->meth&15)
@@ -379,59 +383,115 @@ static Tree *parseexpr(struct symtab *symtab,int prec)
             }
         else n=0, ptr=oops, col=oopscol;
     }
-    if(!n) return 0;						/* No expr */
 
     /* Infix/Postfix operators */
-    loop:
-
-    oops=ptr; oopscol=col;
-    left=col;
-    skipws();
-    left=col-left;
-
-    op=opr();
-
-    right=col;
-    skipws();
-    if(*ptr) right=col-right;
-    else right=32767;
-
-    if(op && op->infix && ( /* !op->prefix || */ left<=right) &&
-                (op->infix->prec>prec || op->infix->prec==prec && op->infix->ass))
+    while(n)
     {
-        char *s;
-        op=op->infix;
-        switch(op->meth)
+        oops = ptr; oopscol = col;
+        left = col;
+        skipws();
+        left = col - left;
+
+        op = opr();
+
+        right = col;
+        skipws();
+        if(!eolc(ptr))
+            right = col - right;
+        else
+            right = 32767;
+
+        if(op && op->infix && ( /* !op->prefix || */ left<=right) &&
+                    (op->infix->prec>prec || op->infix->prec==prec && op->infix->ass))
         {
-            case 5: /* Function call */
-            n=mk(op->func,n,parseexpr(symtab,0));
-            if(*ptr==')') ++ptr, ++col;
-            else error0("missing )");
-            break;
+            char *s;
+            op = op->infix;
+            switch(op->meth)
+            {
+                case 5: /* Function call */
+                {
+                    r = parseexpr(symtab, 0);
+                    if (r)
+                        n = mk(op->func, n, r);
+                    else
+                    {
+                        error0("missing argument for function call");
+                        rm(n);
+                        n = 0;
+                    }
+                    if(*ptr==')') ++ptr, ++col;
+                    else error0("missing )");
+                    break;
+                }
 
-            case 2: /* ?: operator */
-            l=parseexpr(symtab,op->prec);
-            skipws();
-            if(*ptr==':') ++ptr, ++col, r=parseexpr(symtab,op->prec);
-            else error0("missing :"), r=0;
-            n=mk(op->func,n,l,r);
-            break;
+                case 2: /* ?: operator */
+                {
+                    l = parseexpr(symtab,op->prec);
+                    if (l)
+                    {
+                        skipws();
+                        if(*ptr==':')
+                        {
+                            ++ptr; ++col;
+                            r = parseexpr(symtab,op->prec);
+                            if (r)
+                            {
+                                n = mk(op->func, n, l, r);
+                            }
+                            else
+                            {
+                                error0("missing argument after :");
+                                rm(l);
+                                rm(n);
+                                n = 0;
+                            }
+                        }
+                        else
+                        {
+                            error0("missing :");
+                            rm(l);
+                            rm(n);
+                            n = 0;
+                        }
+                    }
+                    else
+                    {
+                        error0("missing argument after ?");
+                        rm(n);
+                        n = 0;
+                    }
+                    break;
+                }
 
-            case 0: /* Normal infix operator */
-            n=mk(op->func,n,parseexpr(symtab,op->prec));
+                case 0: /* Normal infix operator */
+                {
+                    r = parseexpr(symtab, op->prec);
+                    if (r)
+                        n = mk(op->func, n, r);
+                    else
+                    {
+                        error1("missing argument after %s", op->name);
+                        rm(n);
+                        n = 0;
+                    }
+                    break;
+                }
+            }
+        }
+        else if(op && op->postfix && ( /* !op->prefix || */ left<=right) &&
+                                        (op->postfix->prec>prec ||
+                                            op->postfix->prec==prec && op->postfix->ass))
+        {
+            op = op->postfix;
+            n = mk(op->func, n);
+        }
+        else
+        {
+            ptr = oops;
+            col = oopscol;
             break;
         }
-        goto loop;
     }
-    else if(op && op->postfix && ( /* !op->prefix || */ left<=right) &&
-                                    (op->postfix->prec>prec ||
-                                        op->postfix->prec==prec && op->postfix->ass))
-    {
-        op=op->postfix;
-        n=mk(op->func,n);
-        goto loop;
-    }
-    else ptr=oops, col=oopscol;
     return n;
 }
 
@@ -440,11 +500,11 @@ static Tree *parseexpr(struct symtab *symtab,int prec)
 Tree *expr(struct symtab *symtab, char **s)
 {
     Tree *r;
-    ptr= *s;
+    ptr = *s;
     col=0;
     lvl= -1;
-    r=parseexpr(symtab,0);
+    r = parseexpr(symtab,0);
     skipws();
-    *s= ptr;
+    *s = ptr;
     return r;
 }
